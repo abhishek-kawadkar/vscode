@@ -232,6 +232,15 @@ export class SettingsList extends Disposable {
 		DOM.clearNode(this.container);
 		this.pageDisposables.clear();
 
+		// Transfer all used items to the free pool
+		for (const [templateId, usedItems] of this.usedPool.entries()) {
+			const freeItems = this.freePool.get(templateId) ?? [];
+			usedItems.forEach(item => item.template.elementDisposables.clear());
+			this.freePool.set(templateId, [...usedItems, ...freeItems]);
+		}
+
+		this.usedPool.clear();
+
 		if (this.currentView?.group.label) {
 			const headingContainer = DOM.append(this.container, $('.setting-group-heading'));
 			const groupElement = this.currentView!.group;
